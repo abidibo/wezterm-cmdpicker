@@ -89,11 +89,12 @@ local function build_choices()
   local function add_choice(binding, label_prefix, fg_key, fg_desc)
     choice_idx = choice_idx + 1
     local id = tostring(choice_idx)
-    local display_key = format_mods_key(binding.mods, binding.key)
+    local has_key = binding.key and binding.key ~= ''
     local desc = binding.desc or action_to_string(binding.action)
+    local label
 
-    choices[#choices + 1] = {
-      id = id,
+    if has_key then
+      local display_key = format_mods_key(binding.mods, binding.key)
       label = wezterm.format({
         { Attribute = { Intensity = 'Bold' } },
         { Foreground = { AnsiColor = fg_key } },
@@ -101,11 +102,24 @@ local function build_choices()
         { Attribute = { Intensity = 'Normal' } },
         { Foreground = { AnsiColor = fg_desc } },
         { Text = '  ' .. desc },
-      }),
+      })
+    else
+      -- Action-only entry (no keybinding)
+      label = wezterm.format({
+        { Foreground = { AnsiColor = fg_desc } },
+        { Text = desc },
+      })
+    end
+
+    choices[#choices + 1] = {
+      id = id,
+      label = label,
     }
     action_map[id] = binding.action
-    local kid = make_key_id(binding.mods, binding.key)
-    seen_keys[kid] = true
+    if has_key then
+      local kid = make_key_id(binding.mods, binding.key)
+      seen_keys[kid] = true
+    end
   end
 
   -- Layer 1: Registered bindings (top priority)
@@ -199,13 +213,13 @@ function M.register(bindings)
   if not bindings then
     return
   end
-  -- Detect single binding vs list: a single binding has a `key` field
-  if bindings.key then
+  -- Detect single binding vs list: a single binding has `action` or `key` field
+  if bindings.action or bindings.key then
     bindings = { bindings }
   end
   for _, b in ipairs(bindings) do
     registered_bindings[#registered_bindings + 1] = {
-      key = b.key,
+      key = b.key or '',
       mods = b.mods or 'NONE',
       action = b.action,
       desc = b.desc,

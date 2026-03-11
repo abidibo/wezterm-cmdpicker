@@ -11,6 +11,7 @@ A WezTerm plugin that provides a command-palette-style fuzzy picker for keybindi
 - **No re-definition needed**: bindings added directly to `config.keys` are automatically picked up
 - **Deduplication**: overridden defaults are hidden
 - **Colored labels**: registered bindings highlighted, defaults dimmed
+- **Action-only commands**: register commands without keybindings (e.g., SSH servers) — searchable in the picker
 
 ## Installation
 
@@ -99,9 +100,28 @@ return config
 
 ### `cmdpicker.register(bindings)`
 
-Register bindings with descriptions for the picker. Accepts a single `{key, mods, action, desc}` table or a list of them.
+Register bindings with descriptions for the picker. Accepts a single table or a list of them.
 
 Does **not** add to `config.keys` — use this when bindings are already defined elsewhere (e.g., by another plugin).
+
+The `key` field is optional. Entries without `key` appear as action-only commands in the picker (no keybinding shown, but searchable and executable). This is useful for registering commands like SSH connections:
+
+```lua
+local servers = {
+  { name = 'Production', host = 'user@prod.example.com' },
+  { name = 'Staging', host = 'user@staging.example.com' },
+  { name = 'Dev', host = 'user@dev.example.com' },
+}
+
+for _, s in ipairs(servers) do
+  cmdpicker.register({
+    action = act.SpawnCommandInNewTab({ args = { 'ssh', s.host } }),
+    desc = 'SSH: ' .. s.name .. ' (' .. s.host .. ')',
+  })
+end
+```
+
+These will appear in the picker when you search "ssh" — no keybinding required.
 
 ### `cmdpicker.add_keys(config, bindings)` or `cmdpicker.add_keys(bindings)`
 
