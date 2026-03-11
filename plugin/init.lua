@@ -213,23 +213,45 @@ function M.register(bindings)
   end
 end
 
---- Convenience: adds bindings to config.keys AND registers them for the picker.
-function M.add_keys(config, bindings)
-  if not bindings then
+--- Convenience: registers bindings for the picker and optionally adds them to config.keys.
+---
+--- Two calling styles:
+---   add_keys(config, bindings) — appends to config.keys AND registers for picker
+---   add_keys(bindings)         — registers for picker only (bindings already in config.keys)
+---
+--- Bindings can include an optional `desc` field for human-readable descriptions.
+function M.add_keys(config_or_bindings, bindings)
+  -- Detect calling style
+  local config, key_list
+  if bindings then
+    -- Two-arg form: add_keys(config, bindings)
+    config = config_or_bindings
+    key_list = bindings
+  else
+    -- Single-arg form: add_keys(bindings) — register only
+    config = nil
+    key_list = config_or_bindings
+  end
+
+  if not key_list then
     return
   end
-  if bindings.key then
-    bindings = { bindings }
+  if key_list.key then
+    key_list = { key_list }
   end
-  config.keys = config.keys or {}
-  for _, b in ipairs(bindings) do
-    config.keys[#config.keys + 1] = {
-      key = b.key,
-      mods = b.mods or 'NONE',
-      action = b.action,
-    }
+
+  if config then
+    config.keys = config.keys or {}
+    for _, b in ipairs(key_list) do
+      config.keys[#config.keys + 1] = {
+        key = b.key,
+        mods = b.mods or 'NONE',
+        action = b.action,
+      }
+    end
   end
-  M.register(bindings)
+
+  M.register(key_list)
 end
 
 --- Inject the trigger keybinding into config.keys.
