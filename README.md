@@ -2,6 +2,8 @@
 
 A WezTerm plugin that provides a command-palette-style fuzzy picker for keybindings. Press a trigger key (default: `LEADER+Space`) to get an InputSelector popup listing all your keybindings.
 
+![screen](screen.gif)
+
 ## Features
 
 - **Fuzzy search** across all keybindings
