@@ -27,21 +27,35 @@ local function format_mods_key(mods, key)
   return table.concat(parts, '+')
 end
 
---- Best-effort readable name for an action via tostring()
+--- Best-effort readable name for an action
 local function action_to_string(action)
   if action == nil then
     return '(no action)'
   end
-  local s = tostring(action)
-  -- wezterm actions typically tostring as "Action(Variant)" or similar
-  -- strip surrounding quotes if present
-  s = s:gsub('^"', ''):gsub('"$', '')
-  -- trim excessive whitespace
-  s = s:match('^%s*(.-)%s*$')
-  if s == '' then
-    return '(unknown action)'
+  -- Try wezterm.json_encode first — gives structured output for action objects
+  local ok, json = pcall(wezterm.json_encode, action)
+  if ok and json then
+    -- json is typically like {"SpawnTab":"CurrentPaneDomain"} or
+    -- {"CloseCurrentPane":{"confirm":true}} or just "TogglePaneZoomState"
+    -- Strip outer quotes for simple string actions
+    local s = json:gsub('^"', ''):gsub('"$', '')
+    -- For object actions, make them more readable:
+    -- {"SpawnTab":"CurrentPaneDomain"} → SpawnTab: CurrentPaneDomain
+    s = s:gsub('^{', ''):gsub('}$', '')
+    -- Clean up inner JSON noise
+    s = s:gsub('"', ''):gsub('{', '('):gsub('}', ')')
+    -- Trim
+    s = s:match('^%s*(.-)%s*$')
+    if s ~= '' then
+      return s
+    end
   end
-  return s
+  -- Fallback to tostring
+  local s = tostring(action)
+  if s and not s:match('^table:') and s ~= '' then
+    return s
+  end
+  return '(action)'
 end
 
 --- Create a unique key for deduplication (normalized lowercase)
