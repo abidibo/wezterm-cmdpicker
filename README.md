@@ -67,7 +67,6 @@ If you define keybindings in a separate file that returns a keys list:
 -- keybindings.lua
 local wezterm = require('wezterm')
 local act = wezterm.action
-local cmdpicker = wezterm.plugin.require('https://github.com/abidibo/wezterm-cmdpicker')
 
 local keys = {
   { key = 'h', mods = 'LEADER', action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }), desc = 'Split horizontal' },
@@ -75,7 +74,6 @@ local keys = {
   { key = 'n', mods = 'LEADER', action = act.ActivateTabRelative(1) },  -- desc is optional
 }
 
-cmdpicker.add_keys(keys)
 return keys
 ```
 
@@ -86,6 +84,7 @@ local config = wezterm.config_builder()
 local cmdpicker = wezterm.plugin.require('https://github.com/abidibo/wezterm-cmdpicker')
 
 config.keys = require('keybindings')
+cmdpicker.add_keys(config.keys)
 
 -- Apply picker trigger — call this LAST
 cmdpicker.apply_to_config(config, { title = 'Command Palette' })
