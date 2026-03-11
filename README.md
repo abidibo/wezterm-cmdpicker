@@ -26,6 +26,8 @@ local cmdpicker = wezterm.plugin.require('file:///home/you/path/to/wezterm-cmdpi
 
 ## Usage
 
+### Inline keybindings (single file config)
+
 ```lua
 local wezterm = require('wezterm')
 local act = wezterm.action
@@ -57,6 +59,41 @@ config.leader = { key = 'a', mods = 'CTRL', timeout_milliseconds = 1000 }
 return config
 ```
 
+### Separate keybindings file
+
+If you define keybindings in a separate file that returns a keys list:
+
+```lua
+-- keybindings.lua
+local wezterm = require('wezterm')
+local act = wezterm.action
+local cmdpicker = wezterm.plugin.require('https://github.com/abidibo/wezterm-cmdpicker')
+
+local keys = {
+  { key = 'h', mods = 'LEADER', action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }), desc = 'Split horizontal' },
+  { key = 'v', mods = 'LEADER', action = act.SplitVertical({ domain = 'CurrentPaneDomain' }), desc = 'Split vertical' },
+  { key = 'n', mods = 'LEADER', action = act.ActivateTabRelative(1) },  -- desc is optional
+}
+
+cmdpicker.add_keys(keys)
+return keys
+```
+
+```lua
+-- wezterm.lua
+local wezterm = require('wezterm')
+local config = wezterm.config_builder()
+local cmdpicker = wezterm.plugin.require('https://github.com/abidibo/wezterm-cmdpicker')
+
+config.keys = require('keybindings')
+
+-- Apply picker trigger — call this LAST
+cmdpicker.apply_to_config(config, { title = 'Command Palette' })
+
+config.leader = { key = 'a', mods = 'CTRL', timeout_milliseconds = 1000 }
+return config
+```
+
 ## API
 
 ### `cmdpicker.register(bindings)`
@@ -65,11 +102,43 @@ Register bindings with descriptions for the picker. Accepts a single `{key, mods
 
 Does **not** add to `config.keys` — use this when bindings are already defined elsewhere (e.g., by another plugin).
 
-### `cmdpicker.add_keys(config, bindings)`
+### `cmdpicker.add_keys(config, bindings)` or `cmdpicker.add_keys(bindings)`
 
-Adds bindings to `config.keys` **and** registers them for the picker. Recommended way to define keybindings when using the plugin.
+Two calling styles:
 
-Each binding: `{ key = '...', mods = '...', action = ..., desc = '...' }`
+**Two-arg form** — adds bindings to `config.keys` AND registers them for the picker:
+
+```lua
+cmdpicker.add_keys(config, {
+  { key = 'n', mods = 'LEADER', action = act.SpawnTab('CurrentPaneDomain'), desc = 'New tab' },
+})
+```
+
+**Single-arg form** — registers existing bindings for the picker without modifying `config.keys`. Useful when you define keybindings in a separate file that returns a keys list:
+
+```lua
+-- keybindings.lua
+local wezterm = require('wezterm')
+local act = wezterm.action
+local cmdpicker = wezterm.plugin.require('https://github.com/abidibo/wezterm-cmdpicker')
+
+local keys = {
+  { key = 'h', mods = 'LEADER', action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }), desc = 'Split horizontal' },
+  { key = 'v', mods = 'LEADER', action = act.SplitVertical({ domain = 'CurrentPaneDomain' }), desc = 'Split vertical' },
+  { key = 'n', mods = 'LEADER', action = act.ActivateTabRelative(1) },  -- desc is optional
+}
+
+cmdpicker.add_keys(keys)  -- register only, no config object needed
+return keys
+```
+
+```lua
+-- wezterm.lua
+config.keys = require('keybindings')
+cmdpicker.apply_to_config(config)
+```
+
+The `desc` field is optional on each binding. Bindings without `desc` get an auto-generated description from the action.
 
 ### `cmdpicker.apply_to_config(config, opts)`
 
