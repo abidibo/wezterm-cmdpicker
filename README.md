@@ -27,6 +27,10 @@ For local development:
 local cmdpicker = wezterm.plugin.require('file:///home/you/path/to/wezterm-cmdpicker')
 ```
 
+### Type Annotations
+
+You can find LuaLS type annotations for this plugin at [@DrKJeff16](https://github.com/DrKJeff16)'s [wezterm-types](https://github.com/DrKJeff16/wezterm-types).
+
 ## Usage
 
 ### Inline keybindings (single file config)
