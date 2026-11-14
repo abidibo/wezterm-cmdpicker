@@ -206,6 +206,11 @@ end
 -- Public API
 -- ---------------------------------------------------------------------------
 
+--- Clear registered bindings.
+function M.clear_registered_bindings()
+  registered_bindings = {}
+end
+
 --- Register bindings with descriptions for the picker.
 --- Accepts a single {key, mods, action, desc} or a list of them.
 --- Does NOT add to config.keys.
